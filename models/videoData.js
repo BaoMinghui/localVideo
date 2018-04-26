@@ -14,11 +14,13 @@ var videoSchema = new Schema({
 
 videoSchema.statics = {
   get_data: async function(page, limit) {
-    let data = await this.find({}, '-__v -url -createTime', {
-      skip: (page - 1) * 30,
-      limit: 30
+    console.log(await this.count());
+    let data = await this.find({}, '-__v -_id -url -createTime', {
+      skip: (page - 1) * limit,
+      limit: limit
     })
-    return data
+    let total = Math.ceil(await this.count()/limit)
+    return {total,data}
   },
 
   get_url: async function(videoId) {

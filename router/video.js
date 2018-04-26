@@ -1,17 +1,20 @@
-const path = require('path')
 const fs = require('fs')
-const mongod = require("mongodb").MongoClient
-const dbaseUrl = require("../config").db
 const Router = require("koa-router")
-const setrange = require("../util/range")
 
 
 let video = new Router()
 
 video.get('/', async (ctx, next) => {
   let page = ctx.query.page
-  let videoData = await ctx.model('video').get_data(page, 10)
-  ctx.body = videoData
+  let limit = Number(ctx.query.limit)
+  if(!page||!limit){
+    ctx.status = 500
+    ctx.body = "Lack of necessary conditions"
+  }else{
+    let videoData = await ctx.model('video').get_data(page, limit)
+    videoData.status = 1
+    ctx.body = videoData
+  }
   await next()
 })
 
@@ -30,9 +33,9 @@ let readFile = async (ctx, realpath) => {
   let match = ctx.request.header['range']
   let stats = fs.statSync(realpath)
   if (stats.isFile() && match) {
-    let bytes = match.split("=")[1] //开始和结束的位置，如 '17956864-32795686'
-    let start = Number.parseInt(bytes.split("-")[0]) //开始位置
-    let end = Number.parseInt((bytes.split("-")[1]) || (stats.size - 1)) //结束位置
+    let bytes = match.split("=")[1]
+    let start = Number.parseInt(bytes.split("-")[0])
+    let end = Number.parseInt((bytes.split("-")[1]) || (stats.size - 1))
 
     return new Promise((rev, rej) => {
       var stream = fs.createReadStream(realpath, {

@@ -21,10 +21,10 @@ router.use('/video', video.routes(), home.allowedMethods())
 
 app.use(router.routes()).use(router.allowedMethods())
 
-app.on('error',(err,ctx)=>{
+app.on('error', (err, ctx) => {
   console.error(err)
 })
 
 app.listen(config.port, config.host, () => {
-  console.log("server is starting at " + config.host + ' ' + config.port);
+  console.log("server is starting at " + config.host + ' ' + config.port+ ' 端口') ;
 })

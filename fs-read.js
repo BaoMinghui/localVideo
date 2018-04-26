@@ -5,8 +5,7 @@ const filePath = require('./config').filePath
 const mongoose = require('mongoose')
 const moment = require('moment')
 
-let list = []
-let id=1
+let id = 1
 
 mongoose.connect(url)
 
@@ -22,14 +21,13 @@ db.once('open', () => {
     console.log('开始读取' + item)
     readFile(item)
   }
-  // db.close()
 })
 
 let Schema = mongoose.Schema
 let videoSchema = new Schema({
   name: String,
   url: String,
-  id:Number,
+  id: Number,
   createTime: {
     type: Date,
     default: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -43,8 +41,8 @@ let video = mongoose.model('video', videoSchema)
 
 
 function writeData(data) {
-	let videoMsg = new video(data)
-	videoMsg.save()
+  let videoMsg = new video(data)
+  videoMsg.save()
 }
 
 function readFile(readurl) {
@@ -63,14 +61,10 @@ function readFile(readurl) {
         if (stats.isFile()) {
           if (getdir(filename) === 'mp4' || getdir(filename) === 'mkv') {
             let newUrl = readurl + '\\' + filename;
-            list.push({
-              name: filename,
-              url: newUrl
-            })
-						writeData({
+            writeData({
               name: filename,
               url: newUrl,
-              id:id++
+              id: id++
             })
           }
         } else if (stats.isDirectory()) {
@@ -85,4 +79,8 @@ function getdir(url) {
   let arr = url.split('.');
   let len = arr.length;
   return arr[len - 1]
+}
+
+function getPic(dir) {
+  
 }
