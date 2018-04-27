@@ -14,7 +14,6 @@ var videoSchema = new Schema({
 
 videoSchema.statics = {
   get_data: async function(page, limit) {
-    console.log(await this.count());
     let data = await this.find({}, '-__v -_id -url -createTime', {
       skip: (page - 1) * limit,
       limit: limit
@@ -28,6 +27,24 @@ videoSchema.statics = {
       id:videoId
     })
     return video.url
+  },
+
+  set_score: async function(videoId,score){
+    let data = await this.findOneAndUpdate({id:videoId},{$set:{score:score}},{new:true})
+    if (data.score === score) {
+      return true
+    }
+  },
+
+  get_score:async function(videoId){
+    let data = await this.findOne({
+      id:videoId
+    })
+    if(data.score){
+      return data.score
+    }else{
+      return false
+    }
   }
 }
 

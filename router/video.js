@@ -1,9 +1,10 @@
 const fs = require('fs')
 const Router = require("koa-router")
-
+const koaBody = require("koa-body")
 
 let video = new Router()
 
+//视频列表
 video.get('/', async (ctx, next) => {
   let page = ctx.query.page
   let limit = Number(ctx.query.limit)
@@ -18,7 +19,33 @@ video.get('/', async (ctx, next) => {
   await next()
 })
 
+//视频评分
+video.get('/score',async(ctx,next)=>{
+    let id = parseInt(ctx.params.id)
+    let score = await ctx.model('video').get_score(id)
+    let data = {}
+    if(score){
+      data = {
+        status:1,
+        score
+      }
+    }else{
+      data = {
+        status:0
+      }
+    }
+    ctx.body = data
+    await next()
+})
 
+
+//设置视频评分
+video.post('/setScore',koaBody(),async(ctx,next)=>{
+  ctx.body = ctx.request.body.score
+  await next()
+})
+
+//视频播放
 video.get('/:id', async (ctx, next) => {
   let id = parseInt(ctx.params.id)
   let realpath = await ctx.model('video').get_url(id)
@@ -75,5 +102,7 @@ let readFile = async (ctx, realpath) => {
     })
   }
 }
+
+
 
 module.exports = video
