@@ -20,7 +20,7 @@ video.get('/', async (ctx, next) => {
 })
 
 //获取随机列表
-video.get('/random',async (ctx,next)=>{
+video.get('/random', async (ctx, next) => {
   let limit = ctx.query.limit
   let videolist = await ctx.model('video').get_data_random(limit)
   ctx.body = videolist
@@ -43,6 +43,16 @@ video.get('/score', async (ctx, next) => {
     }
   }
 
+  await next()
+})
+
+//获取删除状态
+video.get('/isdeleted', async (ctx, next) => {
+  let id = Number(ctx.query.id)
+  let deleted = await ctx.model('video').backout_delete(id)
+  ctx.body = {
+    deleted: deleted
+  }
   await next()
 })
 
@@ -78,9 +88,17 @@ video.post('/setDelete', koaBody(), async (ctx, next) => {
 })
 
 //恢复视频
-video.get('/setDelete', async (ctx,next)=>{
+video.get('/setDelete', async (ctx, next) => {
   let id = ctx.query.id
 
+})
+
+//获取vidoename
+video.get('/name', async (ctx, next) => {
+  let id = Number(ctx.query.id)
+  let name = await ctx.model('video').get_name(id)
+  ctx.body = name
+  await next()
 })
 
 //视频播放

@@ -14,9 +14,8 @@ db.on("error", () => {
   console.log("数据库连接失败");
 })
 
-db.once('open', () => {
+db.once('open',async () => {
   console.log("数据库连接成功");
-
   for (let item of filePath) {
     console.log('开始读取' + item)
     readFile(item)
@@ -36,6 +35,14 @@ let videoSchema = new Schema({
     type: Date,
     default: moment().format('YYYY-MM-DD HH:mm:ss')
   },
+  delete:{
+    type:Boolean,
+    default:false
+  },
+  score:{
+    type:Number,
+    default:null
+  }
 })
 let video = mongoose.model('video', videoSchema)
 
@@ -82,5 +89,5 @@ function getdir(url) {
 }
 
 function getPic(dir) {
-  
+
 }
