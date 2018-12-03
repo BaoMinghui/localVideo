@@ -1,19 +1,26 @@
 const mongoose = require('mongoose')
-const videoSchema = require('./videoData')
 const config = require('../config')
 
-
 mongoose.Promise = global.Promise
-mongoose.connect(config.db,(err)=>{
-  if(err){
-    console.log(err);
-  }
-  console.log("成功连接数据库");
-})
 
-mongoose.model('video',videoSchema)
+exports.mongoose = mongoose
 
-module.exports = (name)=>{
+exports.connect = () => {
+  mongoose.connect(config.db)
+
+  mongoose.connection.on('err', (err) => {
+    console.log('数据库连接失败！', err);
+  })
+
+  mongoose.connection.on('open', () => {
+    console.log('数据库连接成功');
+  })
+
+  return mongoose
+}
+
+
+exports.getModel = (name) => {
   name = name.toLowerCase()
   return mongoose.model(name)
 }

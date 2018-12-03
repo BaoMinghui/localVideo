@@ -1,13 +1,20 @@
 const Router = require('koa-router')
 const fs = require('fs')
-let home = new Router()
+const video = require('./video')
+const picture = require('./picture')
 
-home.get('/', async (ctx,next) => {
+let home = new Router()
+let router = new Router()
+
+home.get('/', async (ctx) => {
   let html = fs.readFileSync('./static/index.html','binary')
   ctx.res.writeHead(200)
   ctx.res.write(html,'binary')
   ctx.res.end()
-  await next()
 })
 
-module.exports = home
+router.use('/', home.routes())
+router.use('/video', video.routes())
+router.use('/pic',picture.routes())
+
+module.exports = router

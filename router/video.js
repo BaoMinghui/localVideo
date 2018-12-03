@@ -1,165 +1,39 @@
-const fs = require('fs')
 const Router = require("koa-router")
-const koaBody = require("koa-body")
-
-let video = new Router()
+const {
+  playVideo,
+  catchImg
+} = require("../common/video.control").videoitem
+const catchvideos = require("../common/renew")
+const videoData = require("../models/videoData")
+let videoRouter = new Router()
 
 //视频列表
-video.get('/', async (ctx, next) => {
-  let page = ctx.query.page
-  let limit = Number(ctx.query.limit)
-  if (!page || !limit) {
-    ctx.status = 500
-    ctx.body = "Lack of necessary conditions"
-  } else {
-    let videoData = await ctx.model('video').get_data(page, limit)
-    videoData.status = 1
-    ctx.body = videoData
-  }
-  await next()
-})
+videoRouter.get('/', videoData.get_data)
 
-//获取随机列表
-video.get('/random', async (ctx, next) => {
-  let limit = ctx.query.limit
-  let videolist = await ctx.model('video').get_data_random(limit)
-  ctx.body = videolist
-  await next()
-})
+  .get('/random', videoData.get_data_random) //获取随机列表
 
-//视频评分
-video.get('/score', async (ctx, next) => {
-  let id = Number(ctx.query.id)
-  let score = await ctx.model('video').get_score(id)
+  .get('/score', videoData.get_score) //获取视频评分
 
-  if (score) {
-    ctx.body = {
-      status: 1,
-      score
-    }
-  } else {
-    ctx.body = {
-      status: 0
-    }
-  }
+  .get('/isdeleted', videoData.get_delete) //获取删除状态
 
-  await next()
-})
+  .put('/setScore', videoData.set_score) //设置视频评分
 
-//获取删除状态
-video.get('/isdeleted', async (ctx, next) => {
-  let id = Number(ctx.query.id)
-  let deleted = await ctx.model('video').backout_delete(id)
-  ctx.body = {
-    deleted: deleted
-  }
-  await next()
-})
+  .get('/recycleBin', videoData.get_resycle_data) //获取回收站数据
 
+  .delete('/:id', videoData.set_delete) //投入回收站
 
-//设置视频评分
-video.post('/setScore', koaBody(), async (ctx, next) => {
+  .put('/setDelete', videoData.set_undelete) //恢复视频
 
-  let data = ctx.request.body
-  let id = Number(data.id)
-  let score = Number(data.score)
-  let scoreNew = await ctx.model('video').set_score(id, score)
-  ctx.body = {
-    score: scoreNew.score
-  }
-  await next()
-})
+  .get('/name', videoData.get_name) //获取vidoename
 
-//投入回收站
-video.post('/setDelete', koaBody(), async (ctx, next) => {
-  let body = ctx.request.body
-  let id = Number(body.id)
-  let data = await ctx.model('video').set_delete(id)
-  if (data) {
-    ctx.body = {
-      status: 1
-    }
-  } else {
-    ctx.body = {
-      status: 0
-    }
-  }
-  await next()
-})
+  .put('/addtag', videoData.addTag) 
 
-//恢复视频
-video.get('/setDelete', async (ctx, next) => {
-  let id = ctx.query.id
+  .get('/tagsearch', videoData.tagSearch)
 
-})
+  .get('/:id', playVideo) //视频播放
 
-//获取vidoename
-video.get('/name', async (ctx, next) => {
-  let id = Number(ctx.query.id)
-  let name = await ctx.model('video').get_name(id)
-  ctx.body = name
-  await next()
-})
+  .put('/renew', catchvideos) //刷新视频库
 
-//视频播放
-video.get('/play/:id', async (ctx, next) => {
-  let id = parseInt(ctx.params.id)
-  let realpath = await ctx.model('video').get_url(id)
-
-  if (realpath) {
-    await readFile(ctx, realpath)
-  }
-  await next()
-})
-
-
-let readFile = async (ctx, realpath) => {
-  let match = ctx.request.header['range']
-  let stats = fs.statSync(realpath)
-  if (stats.isFile() && match) {
-    let bytes = match.split("=")[1]
-    let start = Number.parseInt(bytes.split("-")[0])
-    let end = Number.parseInt((bytes.split("-")[1]) || (stats.size - 1))
-
-    return new Promise((rev, rej) => {
-      var stream = fs.createReadStream(realpath, {
-        start: start,
-        end: end
-      });
-      ctx.set("Content-Range", `bytes ${start}-${end}/${stats.size}`)
-      ctx.set("Accept-Ranges", `bytes`)
-      ctx.status = 206
-      ctx.type = 'video/mp4'
-      stream.on("open", function(length) {
-        stream.pipe(ctx.res);
-      })
-      stream.on("error", function(err) {
-        ctx.body = err;
-        rej()
-      });
-      stream.on("end", function(err) {
-        rev()
-      });
-    })
-  } else {
-    return new Promise((rev, rej) => {
-      var stream = fs.createReadStream(realpath);
-      ctx.status = 206
-      ctx.type = 'video/mp4'
-      stream.on("open", function(length) {
-        stream.pipe(ctx.res);
-      })
-      stream.on("error", function(err) {
-        ctx.body = err;
-        rej()
-      });
-      stream.on("end", function(err) {
-        rev()
-      });
-    })
-  }
-}
-
-
-
-module.exports = video
+  .get('/img/:id', catchImg) //获取封面
+  
+module.exports = videoRouter
