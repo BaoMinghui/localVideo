@@ -1,6 +1,6 @@
 .DS_Store
 node_modules/
-ffm.js
+static/img/
 
 # Editor directories and files
 .idea
